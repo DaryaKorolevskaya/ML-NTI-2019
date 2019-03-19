@@ -1,0 +1,14 @@
+def main(env_id, seed):
+   agent = Agent()
+   ob = env.reset()
+   actuals = []
+   desireds = []
+   while True:
+       desired = env.omega_target
+       actual = env.omega_actual
+       actuals.append(actual)
+       desireds.append(desired)
+       action = agent.predict(ob)
+       ob, reward, done, _ = env.step(action)
+       if done:
+           break
