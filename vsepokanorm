@@ -13,13 +13,12 @@ import math
 
 
 def train(num_timesteps, seed, model_path=None, env_id=None):
-    from baselines.ppo1 import mlp_policy, pposgd_simple
-    U.make_session(num_cpu=1).enter()
+    from baselines.ppo2.model import Model
+    U.make_session(num_cpu=1).__enter__()
 
-    def policy_fn(name, ob_space, ac_space):
-        return mlp_policy.MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,
-                                    hid_size=80, num_hid_layers=3)
-
+    def model(name, ob_space, ac_space):
+        return model.Model(name=name, ob_space=ob_space, ac_space=ac_space,
+                                    hid_size=75, num_hid_layers=3)
     env = gym.make(env_id)
 
     # parameters below were the best found in a simple random search
@@ -32,7 +31,7 @@ def train(num_timesteps, seed, model_path=None, env_id=None):
                              clip_param=0.2, entcoeff=0.0,
                              optim_epochs=10,
                              optim_stepsize=3e-4,
-                             optim_batchsize=64,
+                             optim_batchsize=164,
                              gamma=0.99,
                              lam=0.95,
                              schedule='linear',
@@ -45,8 +44,8 @@ def train(num_timesteps, seed, model_path=None, env_id=None):
 
 
 class RewScale(gym.RewardWrapper):
-    def init(self, env, scale):
-        gym.RewardWrapper.init(self, env)
+    def __init__(self, env, scale):
+        gym.RewardWrapper.__init__(self, env)
         self.scale = scale
 
     def reward(self, r):
@@ -123,6 +122,8 @@ def plot_step_response(desired, actual,
     ax[2].grid(True)
 
     plt.savefig("gymfc-ppo-step-response.pdf")
+
+
 def main():
     parser = argparse.ArgumentParser()
     logger.configure()
@@ -132,7 +133,7 @@ def main():
     parser.add_argument('--model-path', default=os.path.join('/root/code/nti/gymfc/humanoid_policy', 'hum'))
     parser.add_argument('--play', action="store_true", default=False)
     parser.add_argument('--num-timesteps', type=int, default=2*1e6)
-    current_dir = os.path.dirname(file)
+    current_dir = os.path.dirname(__file__)
     config_path = os.path.join(current_dir,
                                "../configs/iris.config")
     print("Loading config from ", config_path)
@@ -168,5 +169,5 @@ def main():
         plot_step_response(np.array(desireds), np.array(actuals))
 
 
-if name == 'main':
+if __name__ == '__main__':
     main()
